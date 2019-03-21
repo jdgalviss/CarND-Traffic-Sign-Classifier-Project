@@ -142,14 +142,14 @@ def LeNet(x):
     conv1   = tf.nn.conv2d(x, conv1_W, strides=[1, 1, 1, 1], padding='VALID', name = 'conv1')
     conv1 = tf.nn.bias_add(conv1, conv1_b, name = 'bias_conv1')
     conv1 = tf.nn.relu(conv1)
-    conv1 = tf.nn.dropout(conv1, keep_prob, name = 'dropoout1')
+    conv1 = tf.nn.dropout(conv1, keep_prob, name = 'dropout1')
     conv1 = tf.nn.max_pool(conv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID')
     
     # conv2
     conv2   = tf.nn.conv2d(conv1, conv2_W, strides=[1, 1, 1, 1], padding='VALID', name = 'conv2')
     conv2 = tf.nn.bias_add(conv2, conv2_b, name = 'bias_conv2')
     conv2 = tf.nn.relu(conv2)
-    conv2 = tf.nn.dropout(conv2, keep_prob, name = 'dropoout2')
+    conv2 = tf.nn.dropout(conv2, keep_prob, name = 'dropout2')
     conv2 = tf.nn.max_pool(conv2, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID')
     
     # flatten
@@ -157,12 +157,12 @@ def LeNet(x):
     # fully connected 1
     fc1  = tf.matmul(fc0, fc1_W) + fc1_b
     fc1    = tf.nn.relu(fc1)
-    fc1 = tf.nn.dropout(fc1, keep_prob, name = 'dropoout2')
+    fc1 = tf.nn.dropout(fc1, keep_prob, name = 'dropout3')
 
     # fully connected 2
     fc2    = tf.matmul(fc1, fc2_W) + fc2_b
     fc2    = tf.nn.relu(fc2)
-    fc2 = tf.nn.dropout(fc2, keep_prob, name = 'dropoout3')
+    fc2 = tf.nn.dropout(fc2, keep_prob, name = 'dropout4')
 
     # output
     logits = tf.matmul(fc2, fc3_W) + fc3_b
