@@ -126,49 +126,51 @@ from tensorflow.contrib.layers import flatten
 tf.reset_default_graph()
 mu = 0
 sigma = 0.1
-keep_prob = tf.placeholder(tf.float32)
-conv1_W = tf.Variable(tf.truncated_normal(shape=(5, 5, 3, 6), mean = mu, stddev = sigma))
+keep_prob = tf.placeholder(tf.float32, name = 'droput_keep_probability')
+conv1_W = tf.Variable(tf.truncated_normal(name = 'weights_conv1', shape=(5, 5, 3, 6), mean = mu, stddev = sigma))
 conv1_b = tf.Variable(tf.zeros(6))
-conv2_W = tf.Variable(tf.truncated_normal(shape=(5, 5, 6, 16), mean = mu, stddev = sigma))
+conv2_W = tf.Variable(tf.truncated_normal(name = 'weights_conv2', shape=(5, 5, 6, 16), mean = mu, stddev = sigma))
 conv2_b = tf.Variable(tf.zeros(16))
-fc1_W = tf.Variable(tf.truncated_normal(shape=(5*5*16, 120), mean = mu, stddev = sigma))
+fc1_W = tf.Variable(tf.truncated_normal(name = 'weights_fc1', shape=(5*5*16, 120), mean = mu, stddev = sigma))
 fc1_b = tf.Variable(tf.zeros(120))
-fc2_W  = tf.Variable(tf.truncated_normal(shape=(120, 84), mean = mu, stddev = sigma))
+fc2_W  = tf.Variable(tf.truncated_normal(name = 'weights_fc2', shape=(120, 84), mean = mu, stddev = sigma))
 fc2_b  = tf.Variable(tf.zeros(84))
-fc3_W  = tf.Variable(tf.truncated_normal(shape=(84, 43), mean = mu, stddev = sigma))
+fc3_W  = tf.Variable(tf.truncated_normal(name = 'weights_fc3', shape=(84, 43), mean = mu, stddev = sigma))
 fc3_b  = tf.Variable(tf.zeros(43))
 def LeNet(x):
     # conv 1   
-    conv1   = tf.nn.conv2d(x, conv1_W, strides=[1, 1, 1, 1], padding='VALID') + conv1_b
+    conv1   = tf.nn.conv2d(x, conv1_W, strides=[1, 1, 1, 1], padding='VALID', name = 'conv1')
+    conv1 = tf.nn.bias_add(conv1, conv1_b, name = 'bias_conv1')
     conv1 = tf.nn.relu(conv1)
-    conv1 = tf.nn.dropout(conv1, keep_prob)
+    conv1 = tf.nn.dropout(conv1, keep_prob, name = 'dropoout1')
     conv1 = tf.nn.max_pool(conv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID')
     
     # conv2
-    conv2   = tf.nn.conv2d(conv1, conv2_W, strides=[1, 1, 1, 1], padding='VALID') + conv2_b
+    conv2   = tf.nn.conv2d(conv1, conv2_W, strides=[1, 1, 1, 1], padding='VALID', name = 'conv2')
+    conv2 = tf.nn.bias_add(conv2, conv2_b, name = 'bias_conv2')
     conv2 = tf.nn.relu(conv2)
-    conv2 = tf.nn.dropout(conv2, keep_prob)
+    conv2 = tf.nn.dropout(conv2, keep_prob, name = 'dropoout2')
     conv2 = tf.nn.max_pool(conv2, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID')
     
     # flatten
     fc0   = flatten(conv2)
     # fully connected 1
-    fc1   = tf.matmul(fc0, fc1_W) + fc1_b
+    fc1  = tf.matmul(fc0, fc1_W) + fc1_b
     fc1    = tf.nn.relu(fc1)
-    fc1 = tf.nn.dropout(fc1, keep_prob)
+    fc1 = tf.nn.dropout(fc1, keep_prob, name = 'dropoout2')
 
     # fully connected 2
     fc2    = tf.matmul(fc1, fc2_W) + fc2_b
     fc2    = tf.nn.relu(fc2)
-    fc2 = tf.nn.dropout(fc2, keep_prob)
+    fc2 = tf.nn.dropout(fc2, keep_prob, name = 'dropoout3')
 
     # output
     logits = tf.matmul(fc2, fc3_W) + fc3_b
     return logits
 
 #Features and labels
-x = tf.placeholder(tf.float32, (None, 32, 32, 3))
-y = tf.placeholder(tf.int32, (None))
+x = tf.placeholder(tf.float32, (None, 32, 32, 3), name = 'Input')
+y = tf.placeholder(tf.int32, (None), name = 'Output')
 one_hot_y = tf.one_hot(y, 43)
 
 #weights for loss
@@ -214,7 +216,7 @@ EPOCHS = 100
 BATCH_SIZE = 64
 
 with tf.Session() as sess:
-    writer = tf.summary.FileWriter('./graphs', sess.graph)
+    writer = tf.summary.FileWriter('/tmp/nd', sess.graph)
     sess.run(tf.global_variables_initializer())
     num_examples = len(X_train)
     
