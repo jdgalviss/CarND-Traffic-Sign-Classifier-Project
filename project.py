@@ -102,6 +102,11 @@ X_train_norm = (X_train - X_train.mean()) / (np.max(X_train) - np.min(X_train))
 X_valid_norm = (X_valid - X_train.mean()) / (np.max(X_train) - np.min(X_train))
 X_test_norm = (X_test - X_train.mean()) / (np.max(X_train) - np.min(X_train))
 X_train_augmented_norm = (X_train_augmented - X_train_augmented.mean()) / (np.max(X_train_augmented) - np.min(X_train_augmented))
+
+#X_train_norm = (X_train - X_train.mean()) / (np.std(X_train))
+X_valid_norm = (X_valid - X_train_augmented.mean()) / (np.std(X_train_augmented))
+X_test_norm = (X_test - X_train_augmented.mean()) / (np.std(X_train_augmented))
+X_train_augmented_norm = (X_train_augmented - X_train_augmented.mean()) / (np.std(X_train_augmented))
 #X_valid_norm = (X_valid - X_train_augmented.mean()) / (np.max(X_train_augmented) - np.min(X_train_augmented))
 #X_test_norm = (X_test - X_train_augmented.mean()) / (np.max(X_train_augmented) - np.min(X_train_augmented))
 
@@ -138,34 +143,39 @@ fc2_b  = tf.Variable(tf.zeros(84))
 fc3_W  = tf.Variable(tf.truncated_normal(name = 'weights_fc3', shape=(84, 43), mean = mu, stddev = sigma))
 fc3_b  = tf.Variable(tf.zeros(43))
 def LeNet(x):
-    # conv 1   
-    conv1   = tf.nn.conv2d(x, conv1_W, strides=[1, 1, 1, 1], padding='VALID', name = 'conv1')
-    conv1 = tf.nn.bias_add(conv1, conv1_b, name = 'bias_conv1')
-    conv1 = tf.nn.relu(conv1)
-    conv1 = tf.nn.dropout(conv1, keep_prob, name = 'dropout1')
+    # conv 1
+    with tf.name_scope('conv1') as scope:   
+        conv1  = tf.nn.conv2d(x, conv1_W, strides=[1, 1, 1, 1], padding='VALID', name = 'conv1')
+        conv1 = tf.nn.bias_add(conv1, conv1_b, name = 'bias_conv1')
+        conv1 = tf.nn.relu(conv1)
+        conv1 = tf.nn.dropout(conv1, keep_prob, name = 'dropout1')
     conv1 = tf.nn.max_pool(conv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID')
     
     # conv2
-    conv2   = tf.nn.conv2d(conv1, conv2_W, strides=[1, 1, 1, 1], padding='VALID', name = 'conv2')
-    conv2 = tf.nn.bias_add(conv2, conv2_b, name = 'bias_conv2')
-    conv2 = tf.nn.relu(conv2)
-    conv2 = tf.nn.dropout(conv2, keep_prob, name = 'dropout2')
+    with tf.name_scope('conv2') as scope:   
+        conv2   = tf.nn.conv2d(conv1, conv2_W, strides=[1, 1, 1, 1], padding='VALID', name = 'conv2')
+        conv2 = tf.nn.bias_add(conv2, conv2_b, name = 'bias_conv2')
+        conv2 = tf.nn.relu(conv2)
+        conv2 = tf.nn.dropout(conv2, keep_prob, name = 'dropout2')
     conv2 = tf.nn.max_pool(conv2, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID')
     
     # flatten
     fc0   = flatten(conv2)
     # fully connected 1
-    fc1  = tf.matmul(fc0, fc1_W) + fc1_b
-    fc1    = tf.nn.relu(fc1)
-    fc1 = tf.nn.dropout(fc1, keep_prob, name = 'dropout3')
+    with tf.name_scope('fully_connected1') as scope:   
+        fc1  = tf.matmul(fc0, fc1_W) + fc1_b
+        fc1    = tf.nn.relu(fc1)
+        fc1 = tf.nn.dropout(fc1, keep_prob, name = 'dropout3')
 
     # fully connected 2
-    fc2    = tf.matmul(fc1, fc2_W) + fc2_b
-    fc2    = tf.nn.relu(fc2)
-    fc2 = tf.nn.dropout(fc2, keep_prob, name = 'dropout4')
+    with tf.name_scope('fully_connected2') as scope: 
+        fc2    = tf.matmul(fc1, fc2_W) + fc2_b
+        fc2    = tf.nn.relu(fc2)
+        fc2 = tf.nn.dropout(fc2, keep_prob, name = 'dropout4')
 
     # output
-    logits = tf.matmul(fc2, fc3_W) + fc3_b
+    with tf.name_scope('output_layer') as scope: 
+        logits = tf.matmul(fc2, fc3_W) + fc3_b
     return logits
 
 #Features and labels
@@ -189,17 +199,27 @@ weights_loss = tf.constant(weights_arr)
 rate = 0.02
 regularization_factor = 0.0001
 logits = LeNet(x)
-weighted_logits = tf.multiply(logits,weights_loss)
-cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels=one_hot_y, logits=logits)
-loss_operation = tf.reduce_mean(cross_entropy) + regularization_factor*tf.nn.l2_loss(conv1_W) +regularization_factor*tf.nn.l2_loss(conv2_W) +regularization_factor*tf.nn.l2_loss(fc1_W) +regularization_factor*tf.nn.l2_loss(fc2_W) +regularization_factor*tf.nn.l2_loss(fc3_W) +regularization_factor*tf.nn.l2_loss(conv1_b) +regularization_factor*tf.nn.l2_loss(conv2_b) +regularization_factor*tf.nn.l2_loss(fc1_b) +regularization_factor*tf.nn.l2_loss(fc2_b) +regularization_factor*tf.nn.l2_loss(fc3_b)
-optimizer = tf.train.RMSPropOptimizer(decay=0.98, epsilon=0.1, learning_rate=rate)  #try rmsprop
-training_operation = optimizer.minimize(loss_operation)
+with tf.name_scope('weight_logits') as scope: 
+    weighted_logits = tf.multiply(logits,weights_loss)
+with tf.name_scope('loss_calculation') as scope: 
+    cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels=one_hot_y, logits=logits)
+    loss_operation = tf.reduce_mean(cross_entropy) + regularization_factor*tf.nn.l2_loss(conv1_W) +regularization_factor*tf.nn.l2_loss(conv2_W) +regularization_factor*tf.nn.l2_loss(fc1_W) +regularization_factor*tf.nn.l2_loss(fc2_W) +regularization_factor*tf.nn.l2_loss(fc3_W) +regularization_factor*tf.nn.l2_loss(conv1_b) +regularization_factor*tf.nn.l2_loss(conv2_b) +regularization_factor*tf.nn.l2_loss(fc1_b) +regularization_factor*tf.nn.l2_loss(fc2_b) +regularization_factor*tf.nn.l2_loss(fc3_b)
+with tf.name_scope('optimizer') as scope:
+    optimizer = tf.train.RMSPropOptimizer(decay=0.98, epsilon=0.1, learning_rate=rate)  #try rmsprop
+    training_operation = optimizer.minimize(loss_operation)
 
-loss_summary = tf.summary.histogram('My_first_scalar_summary', cross_entropy)
+loss_summary = tf.summary.scalar('Training_Loss', loss_operation)
+#accuracy_summary = tf.summary.scalar('Accuracy', loss_operation)
 #================ evaluate =====================
 correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(one_hot_y, 1))
 accuracy_operation = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 saver = tf.train.Saver()
+#summary of accuracy
+accuracy_variable = tf.Variable(0.0)
+accuracy_ph = tf.placeholder(tf.float32)
+assign_op = accuracy_variable.assign(accuracy_ph)
+accuracy_summary = tf.summary.scalar('Validation_Accuracy', accuracy_variable)
+print(tf.shape(loss_operation))
 
 def evaluate(X_data, y_data):
     num_examples = len(X_data)
@@ -209,12 +229,14 @@ def evaluate(X_data, y_data):
         batch_x, batch_y = X_data[offset:offset+BATCH_SIZE], y_data[offset:offset+BATCH_SIZE]
         accuracy = sess.run(accuracy_operation, feed_dict={keep_prob:1.0, x: batch_x, y: batch_y})
         total_accuracy += (accuracy * len(batch_x))
+        
     return total_accuracy / num_examples
 
 #================== train =======================
 EPOCHS = 100
 BATCH_SIZE = 64
 
+merged = tf.summary.merge_all()
 with tf.Session() as sess:
     writer = tf.summary.FileWriter('/tmp/nd', sess.graph)
     sess.run(tf.global_variables_initializer())
@@ -226,12 +248,17 @@ with tf.Session() as sess:
         for offset in range(0, num_examples, BATCH_SIZE):
             end = offset + BATCH_SIZE
             batch_x, batch_y = X_train_augmented_norm[offset:end], y_train_augmented[offset:end]
-            
             sess.run(training_operation, feed_dict={keep_prob:0.75, x: batch_x, y: batch_y})
-            
-        training = sess.run(loss_summary, feed_dict={keep_prob:0.75, x: batch_x, y: batch_y})
-        writer.add_summary(training, i)    
-        validation_accuracy = evaluate(X_valid_norm, y_valid)
+        validation_accuracy = evaluate(X_valid_norm, y_valid)    
+        #summary 
+        set_acc = sess.run(assign_op, feed_dict={accuracy_ph:validation_accuracy})
+        summary = sess.run(merged, feed_dict={accuracy_ph:validation_accuracy, keep_prob:0.75, x: batch_x, y: batch_y})   
+        #training = sess.run(loss_summary, feed_dict={keep_prob:0.75, x: batch_x, y: batch_y})
+        writer.add_summary(summary, i)
+           
+        
+        #acc = sess.run(accuracy_summary)
+        #writer.add_summary(acc, i)    
         
         print("EPOCH {} ...".format(i+1))
         print("Validation Accuracy = {:.3f}".format(validation_accuracy))
@@ -239,3 +266,11 @@ with tf.Session() as sess:
         
     saver.save(sess, './lenet')
     print("Model saved")
+
+
+    #Evaluate model on test data
+    with tf.Session() as sess:
+        saver.restore(sess, tf.train.latest_checkpoint('.'))
+
+        test_accuracy = evaluate(X_test, y_test)
+        print("Test Accuracy = {:.3f}".format(test_accuracy))
