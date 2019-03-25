@@ -2,15 +2,18 @@
 
 ## Writeup
 
-### You can use this file as a template for your writeup if you want to submit it as a markdown file, but feel free to use some other method and submit a pdf if you prefer.
+### In this project,we present a pipeline to classify the signs defined in the German Traffic Sign dataset using convolutional Neural Networks.
 
 ---
 
-**Build a Traffic Sign Recognition Project**
+**Project goals**
 
 The goals / steps of this project are the following:
 * Load the data set (see below for links to the project data set)
 * Explore, summarize and visualize the data set
+* Preprocess data
+    * Augment data
+    * Normalize data
 * Design, train and test a model architecture
 * Use the model to make predictions on new images
 * Analyze the softmax probabilities of the new images
@@ -19,14 +22,16 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 
-[image1]: ./examples/visualization.jpg "Visualization"
-[image2]: ./examples/grayscale.jpg "Grayscaling"
-[image3]: ./examples/random_noise.jpg "Random Noise"
-[image4]: ./examples/placeholder.png "Traffic Sign 1"
-[image5]: ./examples/placeholder.png "Traffic Sign 2"
-[image6]: ./examples/placeholder.png "Traffic Sign 3"
-[image7]: ./examples/placeholder.png "Traffic Sign 4"
-[image8]: ./examples/placeholder.png "Traffic Sign 5"
+[image1]: ./output_imgs/01_histogram_train_data.png "Histogram"
+[image2]: ./output_imgs/01_histogram_valid_data.png "Histogram Validation"
+[image3]: ./output_imgs/01_histogram_test_data.png "Histogram Test"
+[image4]: ./output_imgs/02_all_classes.png "All classes"
+[image5]: ./output_imgs/03_augmented.png "Data Augmentation"
+[image6]: ./test_images/test/1.jpeg "test image 1"
+[image7]: ./test_images/test/4.jpeg "test image 2"
+[image8]: ./test_images/test/15.jpeg "test image 3"
+[image9]: ./test_images/test/18.jpeg "test image 4"
+[image10]: ./test_images/test/120.jpeg "test image 5"
 
 ## Rubric Points
 ### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/481/view) individually and describe how I addressed each point in my implementation.  
@@ -34,106 +39,150 @@ The goals / steps of this project are the following:
 ---
 ### Writeup / README
 
-#### 1. Provide a Writeup / README that includes all the rubric points and how you addressed each one. You can submit your writeup as markdown or pdf. You can use this template as a guide for writing the report. The submission includes the project code.
 
-You're reading it! and here is a link to my [project code](https://github.com/udacity/CarND-Traffic-Sign-Classifier-Project/blob/master/Traffic_Sign_Classifier.ipynb)
+You're reading it! and here is a link to my [project code](https://github.com/jdgalviss/CarND-Traffic-Sign-Classifier-Project/blob/master/Traffic_Sign_Classifier.ipynb)
 
 ### Data Set Summary & Exploration
 
-#### 1. Provide a basic summary of the data set. In the code, the analysis should be done using python, numpy and/or pandas methods rather than hardcoding results manually.
+#### 1. Dataset Summary.
 
 I used the pandas library to calculate summary statistics of the traffic
 signs data set:
 
-* The size of training set is ?
-* The size of the validation set is ?
-* The size of test set is ?
-* The shape of a traffic sign image is ?
-* The number of unique classes/labels in the data set is ?
+* The size of training set is 34799
+* The size of the validation set is 4410
+* The size of test set is 12630
+* The shape of a traffic sign image is 32 x 32 pixels
+* The number of unique classes/labels in the data set is 43
 
-#### 2. Include an exploratory visualization of the dataset.
+#### 2. Dataset Exploration
+The following figure shows one image per each one of the 43 classes included in the dataset.
 
-Here is an exploratory visualization of the data set. It is a bar chart showing how the data ...
+
+![alt text][image4]
+
+The following bar charts show how the data is distributed:
+
 
 ![alt text][image1]
 
-### Design and Test a Model Architecture
-
-#### 1. Describe how you preprocessed the image data. What techniques were chosen and why did you choose these techniques? Consider including images showing the output of each preprocessing technique. Pre-processing refers to techniques such as converting to grayscale, normalization, etc. (OPTIONAL: As described in the "Stand Out Suggestions" part of the rubric, if you generated additional data for training, describe why you decided to generate additional data, how you generated the data, and provide example images of the additional data. Then describe the characteristics of the augmented training set like number of images in the set, number of images for each class, etc.)
-
-As a first step, I decided to convert the images to grayscale because ...
-
-Here is an example of a traffic sign image before and after grayscaling.
-
 ![alt text][image2]
-
-As a last step, I normalized the image data because ...
-
-I decided to generate additional data because ... 
-
-To add more data to the the data set, I used the following techniques because ... 
-
-Here is an example of an original image and an augmented image:
 
 ![alt text][image3]
 
-The difference between the original data set and the augmented data set is the following ... 
+We can see how the data is unbalanced, i.e. we don't have the same ammount of images for each class, this characteristic of the dataset (mainly the training data set) can be problematic, since the network will be biased towards the classes with the most images. We'll take this into account when we build our model architecture.
 
 
-#### 2. Describe what your final model architecture looks like including model type, layers, layer sizes, connectivity, etc.) Consider including a diagram and/or table describing the final model.
+### Design and Test a Model Architecture
 
-My final model consisted of the following layers:
+#### 1. Data Preprocessing
+
+As a first step, the data is augmented offline in order to have a bigger dataset (3x), by apllying the following operations:
+* Rotate a random angle between 15 and -15 degrees
+* Translate randombly betwwen -5 and 5 pixels both vertically and horizontally
+* Scale Image
+* Change Brightness and Saturation
+
+Following image, shows the augmentation procedure run on every image:
+
+![alt text][image5]
+
+By having more data, considering the rotation, translation, scaling and the changes in brightness and saturation, we expect to have a more varied source of information, such that our model can generalize to all the ways data can be presented in.
+
+Even though different color representations like YUV were tested, results with RGB were the same, this is why no color transformation was implemented
+
+#### 2. Model architecture
+
+The model (same as LeNet) consisted of the following layers:
 
 | Layer         		|     Description	        					| 
 |:---------------------:|:---------------------------------------------:| 
 | Input         		| 32x32x3 RGB image   							| 
-| Convolution 3x3     	| 1x1 stride, same padding, outputs 32x32x64 	|
+| Convolution 5x5     	| 1x1 stride, valid padding, outputs 28x28x6 	|
 | RELU					|												|
-| Max pooling	      	| 2x2 stride,  outputs 16x16x64 				|
-| Convolution 3x3	    | etc.      									|
-| Fully connected		| etc.        									|
-| Softmax				| etc.        									|
-|						|												|
-|						|												|
- 
+| Dropout				|												|
+| Max pooling	      	| 2x2 stride,  outputs 14x14x6 			     	|
+| Convolution 5x5	    | 1x1 stride, valid padding, outputs 10x10x16   |
+| RELU					|												|
+| Dropout				|												|
+| Max pooling	      	| 2x2 stride,  outputs 5x5x16 	      			|
+| Flatten   	      	| make sure output is 1-D 	      			    |
+| Fully connected		| 120 outputs        							|
+| RELU					|												|
+| Dropout				|												|
+| Fully connected		| 84 outputs        							|
+| RELU					|												|
+| Dropout				|												|
+| Fully connected		| 43 outputs - logits        					|
+| Softmax				|            									|
 
 
-#### 3. Describe how you trained your model. The discussion can include the type of optimizer, the batch size, number of epochs and any hyperparameters such as learning rate.
 
-To train the model, I used an ....
+#### 3. Model Training
 
-#### 4. Describe the approach taken for finding a solution and getting the validation set accuracy to be at least 0.93. Include in the discussion the results on the training, validation and test sets and where in the code these were calculated. Your approach may have been an iterative process, in which case, outline the steps you took to get to the final solution and why you chose those steps. Perhaps your solution involved an already well known implementation or architecture. In this case, discuss why you think the architecture is suitable for the current problem.
+**Loss Function**
+The same dropout, L2 Regularization is implemented in order to avoid over fitting, this term is added to the loss function:
+```python
+loss_operation = tf.reduce_mean(cross_entropy) + regularization_factor*tf.nn.l2_loss(conv1_W) + regularization_factor*tf.nn.l2_loss(conv2_W) + regularization_factor*tf.nn.l2_loss(fc1_W) + regularization_factor*tf.nn.l2_loss(fc2_W) + regularization_factor*tf.nn.l2_loss(fc3_W) + regularization_factor*tf.nn.l2_loss(conv1_b) + regularization_factor*tf.nn.l2_loss(conv2_b) + regularization_factor*tf.nn.l2_loss(fc1_b) + regularization_factor*tf.nn.l2_loss(fc2_b) + regularization_factor*tf.nn.l2_loss(fc3_b)
+```
+On the other hand, as discussed before, data is unbalanced, for this reason we are going to weight logits during training, such that classes with the less number of images have a bigger weight and vice-versa:
+
+```python
+for i in range(0,43,1):
+    weights_arr.append(math.log(X_train_augmented.shape[0]/max(counted_train[i],1))+1)
+...
+weighted_logits = tf.multiply(logits,weights_loss)
+...
+
+```
+The optimizer used is RMSProp, an algorithm which adjusts the learning rate in time according to a decay parameter. It uses a moving average of squared gradients to normalize the gradient itself.
+
+```python
+optimizer = tf.train.RMSPropOptimizer(decay=0.95, epsilon=0.1, learning_rate=rate)
+```
+
+#### 4. Approach
+Like already stated, several techniques were implemented to get a higher accuracy and avoid overfitting with LeNet architecture:
+* Data augmentation
+* Dropout
+* L2 Regularization
+* Weighted logits for unbalanced data
 
 My final model results were:
-* training set accuracy of ?
+* training set accuracy of 
 * validation set accuracy of ? 
 * test set accuracy of ?
 
 If an iterative approach was chosen:
 * What was the first architecture that was tried and why was it chosen?
+For simplicity, LeNet architecture was chosen, even though first tests didn't show a validation accuracy of more than 0.9, after implemented the previous mentioned techniques, the accuracy was strongly improved.
 * What were some problems with the initial architecture?
-* How was the architecture adjusted and why was it adjusted? Typical adjustments could include choosing a different model architecture, adding or taking away layers (pooling, dropout, convolution, etc), using an activation function or changing the activation function. One common justification for adjusting an architecture would be due to overfitting or underfitting. A high accuracy on the training set but low accuracy on the validation set indicates over fitting; a low accuracy on both sets indicates under fitting.
+Without droput or any type of regularization, it is quite likely that the gradient could die or that the model would tend to overfit. On the other hand, without data augmentation, when testing the model on external data, it wouldnt get an accuracy of more than 0.8, which shows that the model wasn't generalizing well, for this, regularization and data augmentation were key.
+* How was the architecture adjusted and why was it adjusted? The only change made to the architecture was adding droput to each layer of the network to avoid overfitting.
 * Which parameters were tuned? How were they adjusted and why?
-* What are some of the important design choices and why were they chosen? For example, why might a convolution layer work well with this problem? How might a dropout layer help with creating a successful model?
+* Learning rate and decay: these two play a really important role in th RMSProp algorithm, at first two high values in the learning rate would make the model's accuracy get stucked.
+* Batches number: it was set to 128 after several tests
+* L2 Regularization: if the weight of l2 regularization is too high, it doesn't let the model adjust to training data, a small value wasof 0.001 was chosen.
+* Epochs: After watching the accuracy and loss plots, it was clear that 10 epochs were not enough and the model could keep on learning, this value was finally set to 100 epochs, even though "early stopping" should also be considered to avoid overfitting.
 
-If a well known architecture was chosen:
-* What architecture was chosen?
-* Why did you believe it would be relevant to the traffic sign application?
-* How does the final model's accuracy on the training, validation and test set provide evidence that the model is working well?
- 
 
-### Test a Model on New Images
+### Testing the Model on New Images
 
-#### 1. Choose five German traffic signs found on the web and provide them in the report. For each image, discuss what quality or qualities might be difficult to classify.
+#### 1. Choosing 5 german traffic signs images.
 
-Here are five German traffic signs that I found on the web:
+Here, five traffic signs images were chosen:
 
-![alt text][image4] ![alt text][image5] ![alt text][image6] 
-![alt text][image7] ![alt text][image8]
+![alt text][image6] ![alt text][image7] ![alt text][image8] 
+![alt text][image9] ![alt text][image10]
 
-The first image might be difficult to classify because ...
+These images might present following difficulties to the model:
+* First image: It wasn't taken in front of the sign, but from a different perspective, so the number and the sign shapes are distorted.
+* Second image: The sign appears small (it doesn't occupy the whole image).
+* Third image: This class tends to be confused with other classes, since it represents only the general shape of a round traffic sign.
+* Fourd image: the littla sign under the traffic sign might confuse the classifier.
+* Fifth image: It presents a circular object behind the sign, whose shape differs from the actual sign.
 
-#### 2. Discuss the model's predictions on these new traffic signs and compare the results to predicting on the test set. At a minimum, discuss what the predictions were, the accuracy on these new predictions, and compare the accuracy to the accuracy on the test set (OPTIONAL: Discuss the results in more detail as described in the "Stand Out Suggestions" part of the rubric).
+#### 2. Model's predictions
 
 Here are the results of the prediction:
 
@@ -148,7 +197,7 @@ Here are the results of the prediction:
 
 The model was able to correctly guess 4 of the 5 traffic signs, which gives an accuracy of 80%. This compares favorably to the accuracy on the test set of ...
 
-#### 3. Describe how certain the model is when predicting on each of the five new images by looking at the softmax probabilities for each prediction. Provide the top 5 softmax probabilities for each image along with the sign type of each probability. (OPTIONAL: as described in the "Stand Out Suggestions" part of the rubric, visualizations can also be provided such as bar charts)
+#### 3. How certain was the model?
 
 The code for making predictions on my final model is located in the 11th cell of the Ipython notebook.
 
@@ -165,7 +214,7 @@ For the first image, the model is relatively sure that this is a stop sign (prob
 
 For the second image ... 
 
-### (Optional) Visualizing the Neural Network (See Step 4 of the Ipython notebook for more details)
-#### 1. Discuss the visual output of your trained network's feature maps. What characteristics did the neural network use to make classifications?
+### Visualizing the Neural Network
+#### 1. Discuss the visual output of your trai
 
 
