@@ -27,11 +27,25 @@ The goals / steps of this project are the following:
 [image3]: ./output_imgs/01_histogram_test_data.png "Histogram Test"
 [image4]: ./output_imgs/02_all_classes.png "All classes"
 [image5]: ./output_imgs/03_augmented.png "Data Augmentation"
-[image6]: ./test_images/test/1.jpeg "test image 1"
-[image7]: ./test_images/test/4.jpeg "test image 2"
-[image8]: ./test_images/test/15.jpeg "test image 3"
-[image9]: ./test_images/test/18.jpeg "test image 4"
-[image10]: ./test_images/test/120.jpeg "test image 5"
+[image6]: ./test_images/test/120.jpeg "test image 1"
+[image7]: ./test_images/test/18.jpeg "test image 2"
+[image8]: ./test_images/test/1.jpeg "test image 3"
+[image9]: ./test_images/test/3.jpeg "test image 4"
+[image10]: ./test_images/test/7.jpeg "test image 5"
+[image11]: ./output_imgs/07_test1.png "softmax test 1"
+[image12]: ./output_imgs/07_test8.png "softmax test 2"
+[image13]: ./output_imgs/07_test7.png "softmax test 3"
+[image14]: ./output_imgs/07_test9.png "softmax test 4"
+[image15]: ./output_imgs/07_test10.png "softmax test 5"
+[image16]: ./output_imgs/05_train_accuracy.png "train accuracy"
+[image17]: ./output_imgs/05_train_loss.png "train loss"
+[image18]: ./output_imgs/05_validation_accuracy.png "validation accuracy"
+[image19]: ./output_imgs/05_architecture.png "architecture"
+[image20]: ./output_imgs/accuracy.png "accuracy"
+[image21]: ./output_imgs/06_visualization1.png "visualization1"
+[image22]: ./output_imgs/06_visualization2.png "visualization2"
+[image23]: ./output_imgs/06_visualization3.png "visualization3"
+[image24]: ./output_imgs/06_visualization4.png "visualization4"
 
 ## Rubric Points
 ### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/481/view) individually and describe how I addressed each point in my implementation.  
@@ -116,7 +130,7 @@ The model (same as LeNet) consisted of the following layers:
 | Fully connected		| 43 outputs - logits        					|
 | Softmax				|            									|
 
-
+![alt text][image19]
 
 #### 3. Model Training
 
@@ -149,11 +163,18 @@ Like already stated, several techniques were implemented to get a higher accurac
 * Weighted logits for unbalanced data
 
 My final model results were:
-* training set accuracy of 
-* validation set accuracy of ? 
-* test set accuracy of ?
+* training set accuracy of 99%
+* validation set accuracy of 97% 
+* test set accuracy of 95%
 
-If an iterative approach was chosen:
+Tensorboard was used to visualize the training process, here we can see how the accuracies and loss changed during training.
+
+![alt text][image16]
+![alt text][image17]
+![alt text][image18]
+
+![alt text][image20]
+
 * What was the first architecture that was tried and why was it chosen?
 For simplicity, LeNet architecture was chosen, even though first tests didn't show a validation accuracy of more than 0.9, after implemented the previous mentioned techniques, the accuracy was strongly improved.
 * What were some problems with the initial architecture?
@@ -176,11 +197,12 @@ Here, five traffic signs images were chosen:
 ![alt text][image9] ![alt text][image10]
 
 These images might present following difficulties to the model:
-* First image: It wasn't taken in front of the sign, but from a different perspective, so the number and the sign shapes are distorted.
-* Second image: The sign appears small (it doesn't occupy the whole image).
-* Third image: This class tends to be confused with other classes, since it represents only the general shape of a round traffic sign.
-* Fourd image: the littla sign under the traffic sign might confuse the classifier.
-* Fifth image: It presents a circular object behind the sign, whose shape differs from the actual sign.
+* First image: It presents a circular object behind the sign, whose shape differs from the actual sign.
+* Second image: the little sign under the traffic sign might confuse the classifier.
+* Third image: It wasn't taken in front of the sign, but from a different perspective, so the number and the sign shapes are distorted.
+* Fourth image: The sign is rectangular, insted of circular as usual
+* Fifth image: It was also taken from a different perspective
+
 
 #### 2. Model's predictions
 
@@ -188,33 +210,43 @@ Here are the results of the prediction:
 
 | Image			        |     Prediction	        					| 
 |:---------------------:|:---------------------------------------------:| 
-| Stop Sign      		| Stop sign   									| 
-| U-turn     			| U-turn 										|
-| Yield					| Yield											|
-| 100 km/h	      		| Bumpy Road					 				|
-| Slippery Road			| Slippery Road      							|
+| Priority road    		| Priority road  								| 
+| No entry     			| No entry 										|
+| Speed limit (30km/h)	| Speed limit (30km/h)							|
+| Speed limit (60km/h)	| Speed limit (60km/h)         				|
+| Speed limit (100km/h)	| Speed limit (100km/h)							|
 
 
-The model was able to correctly guess 4 of the 5 traffic signs, which gives an accuracy of 80%. This compares favorably to the accuracy on the test set of ...
+The model was able to correctly guess 5 of the 5 traffic signs, which gives an accuracy of 100%. A really good result, since despite being a small sample, it confirms the accuracies obtained for training, validation and test data.
 
 #### 3. How certain was the model?
 
-The code for making predictions on my final model is located in the 11th cell of the Ipython notebook.
+The code for making predictions on my final model is located in the 102th cell of the Ipython notebook.
 
-For the first image, the model is relatively sure that this is a stop sign (probability of 0.6), and the image does contain a stop sign. The top five soft max probabilities were
+The following images show how the softmax probabilities were distributed for the test images:
 
-| Probability         	|     Prediction	        					| 
-|:---------------------:|:---------------------------------------------:| 
-| .60         			| Stop sign   									| 
-| .20     				| U-turn 										|
-| .05					| Yield											|
-| .04	      			| Bumpy Road					 				|
-| .01				    | Slippery Road      							|
+![alt text][image11]
+![alt text][image12]
+![alt text][image13]
+![alt text][image14]
+![alt text][image15]
 
-
-For the second image ... 
+The model was extremly certain on test images.
 
 ### Visualizing the Neural Network
-#### 1. Discuss the visual output of your trai
+Even though Neural Networks are sometimes seen as black boxes, by showing feature maps we can see how they treat information to extract features which become more complex as the network depth grows. In order to analyze this, it is possible to get following visualizations of the feature maps for the first (first 6 feature maps) and second (next 16 feature maps) convolution layer.
 
+![alt text][image21]
+* conv1: In this case, the feature map 4 highlights the yellow in the middle of the traffic signs, it also seen how the rest highlight the edges of the sign which are located at 45 degrees.
+* conv2: feature maps seem to focus on more and more on determined edges
 
+![alt text][image22]
+* conv1: In this case, the feature map 4 highlights the red in the stop sign, the feature map 5 highlights the edges of the letters and the sign itsself.
+
+![alt text][image23]
+* conv1: In this case, the feature map 0 highlights the blue in the traffic sign while the rest seem to be focused on the edges in different directions.
+  
+![alt text][image24]
+* conv1: In this case, the feature map 2 highlights the edges corresponding to the number. However the feature maps 
+
+The conv2 feature maps represent a higher extraction of the images, hence it is a little more difficult to distinguish their meaning
